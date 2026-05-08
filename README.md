@@ -62,15 +62,21 @@ AddressCookies.getURL();
 
 ## AddressShare — usage
 
+AddressShare works standalone — no AddressCookies required.
+
 ```html
 <script src="address-share.js"></script>
 ```
 
 ```js
-// Build a shareable URL without changing the current one
+// Build a shareable URL — does NOT change the current page URL
+// Without baseURL: includes any existing ac. data from the current URL
 const link = AddressShare.getShareURL({ report: 'Issue #42', status: 'open' });
 
-// Update the current URL with shared data and return it
+// For a different target page (clean URL, no ac. data carried over)
+const link2 = AddressShare.getShareURL({ report: 'Issue #42' }, 'https://example.com/report');
+
+// Update the current URL with shared data (changes the address bar)
 const url = AddressShare.share({ message: 'Hello from the static page' });
 
 // On the receiving page — runs callback if shared data is present in URL
@@ -78,13 +84,13 @@ AddressShare.onReceive(function (data) {
   console.log(data.message);
 });
 
-// Copy shareable URL to clipboard
+// Copy shareable URL to clipboard (does NOT change the current page URL)
 AddressShare.copyToClipboard({ note: 'Check this out' }).then(function (url) {
   console.log('Copied:', url);
 });
 
 // Manually unpack data from any URL string
-const data = AddressShare.unpack('https://example.com/#address-share=BASE64');
+const data = AddressShare.unpack('https://example.com/#as.note=hello');
 ```
 
 ---
