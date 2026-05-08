@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Address Cookies – Testy</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      padding: 2rem 1rem;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    h1 { color: #3b5bdb; margin-bottom: 0.25rem; font-size: 1.5rem; }
+    .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .summary {
+      padding: 0.9rem 1.1rem;
+      border-radius: 6px;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    .summary.all-pass { background: #ebfbee; color: #2f9e44; border: 1px solid #b2f2bb; }
+    .summary.has-fail { background: #fff5f5; color: #e03131; border: 1px solid #ffc9c9; }
+    .suite { margin-bottom: 2rem; }
+    .suite-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #888;
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .test {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.55rem 0.8rem;
+      border-radius: 4px;
+      margin-bottom: 0.35rem;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    .test.pass { background: #ebfbee; }
+    .test.fail { background: #fff5f5; }
+    .badge { font-weight: 700; min-width: 38px; font-size: 0.8rem; padding-top: 0.05rem; }
+    .pass .badge { color: #2f9e44; }
+    .fail .badge { color: #e03131; }
+    .test-body { flex: 1; }
+    .error { font-size: 0.78rem; color: #c92a2a; margin-top: 0.2rem; font-family: monospace; }
+    footer {
+      text-align: center;
+      padding: 2rem 0 0;
+      color: #aaa;
+      font-size: 0.8rem;
+    }
+    footer a { color: #3b5bdb; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<h1>Address Cookies – Testy</h1>
+<p class="subtitle">Automaticky spuštěné testy knihoven AddressCookies a AddressShare</p>
+
+<div class="summary" id="summary">Spouštím...</div>
+
+<div class="suite">
+  <div class="suite-title">AddressCookies</div>
+  <div id="bc-results"></div>
+</div>
+
+<div class="suite">
+  <div class="suite-title">AddressShare</div>
+  <div id="as-results"></div>
+</div>
+
+<footer>
+  Viktor Brunclík &nbsp;|&nbsp;
+  <a href="https://bruncsoft.com">bruncsoft.com</a> &nbsp;|&nbsp;
+  <a href="https://vbtronic.com">vbtronic.com</a>
+  &nbsp;— MIT 2026
+</footer>
+
+<script src="../address-cookies.js"></script>
+<script src="../address-share.js"></script>
+<script>
+  var passed = 0;
+  var failed = 0;
+
+  function assert(cond, msg) {
+    if (!cond) throw new Error(msg || 'Assertion failed');
+  }
+
+  function assertEqual(a, b, msg) {
+    var as = JSON.stringify(a), bs = JSON.stringify(b);
+    if (as !== bs) throw new Error(msg || 'Dostali jsme ' + as + ', očekáváno ' + bs);
+  }
+
+  function test(containerId, name, fn) {
+    var wrap = document.createElement('div');
+    wrap.className = 'test';
+    var badge = document.createElement('span');
+    badge.className = 'badge';
+    var body = document.createElement('div');
+    body.className = 'test-body';
+    body.textContent = name;
+    wrap.appendChild(badge);
+    wrap.appendChild(body);
+    try {
+      fn();
+      wrap.classList.add('pass');
+      badge.textContent = 'PASS';
+      passed++;
+    } catch (e) {
+      wrap.classList.add('fail');
+      badge.textContent = 'FAIL';
+      var err = document.createElement('div');
+      err.className = 'error';
+      err.textContent = e.message;
+      body.appendChild(err);
+      failed++;
+    }
+    document.getElementById(containerId).appendChild(wrap);
+  }
+
+  // ─── AddressCookies ────────────────────────────────────────────────
+
+  test('bc-results', 'set() a get() — string', function () {
+    AddressCookies.clear();
+    AddressCookies.set('k', 'hello');
+    assertEqual(AddressCookies.get('k'), 'hello');
+  });
+
+  test('bc-results', 'set() a get() — číslo', function () {
+    AddressCookies.clear();
+    AddressCookies.set('n', 99);
+    assertEqual(AddressCookies.get('n'), 99);
+  });
+
+  test('bc-results', 'set() a get() — boolean', function () {
+    AddressCookies.clear();
+    AddressCookies.set('b', true);
+    assertEqual(AddressCookies.get('b'), true);
+  });
+
+  test('bc-results', 'set() a get() — objekt s polem', function () {
+    AddressCookies.clear();
+    AddressCookies.set('obj', { a: 1, arr: [2, 3] });
+    assertEqual(AddressCookies.get('obj'), { a: 1, arr: [2, 3] });
+  });
+
+  test('bc-results', 'Unicode — česká diakritika', function () {
+    AddressCookies.clear();
+    AddressCookies.set('txt', 'Příliš žluťoučký kůň');
+    assertEqual(AddressCookies.get('txt'), 'Příliš žluťoučký kůň');
+  });
+
+  test('bc-results', 'remove() odstraní klíč', function () {
+    AddressCookies.clear();
+    AddressCookies.set('x', 42);
+    AddressCookies.remove('x');
+    assertEqual(AddressCookies.get('x', null), null);
+  });
+
+  test('bc-results', 'clear() vyprázdní vše', function () {
+    AddressCookies.set('a', 1);
+    AddressCookies.set('b', 2);
+    AddressCookies.clear();
+    assertEqual(Object.keys(AddressCookies.all()).length, 0);
+  });
+
+  test('bc-results', 'get() vrátí fallback pro chybějící klíč', function () {
+    AddressCookies.clear();
+    assertEqual(AddressCookies.get('missing', 'výchozí'), 'výchozí');
+  });
+
+  test('bc-results', 'URL hash obsahuje __bc po set()', function () {
+    AddressCookies.clear();
+    AddressCookies.set('url-test', 123);
+    assert(location.hash.indexOf('__bc') !== -1, 'Hash neobsahuje __bc');
+  });
+
+  test('bc-results', 'řetězení set().set().set()', function () {
+    AddressCookies.clear();
+    AddressCookies.set('x', 1).set('y', 2).set('z', 3);
+    assertEqual(AddressCookies.get('x'), 1);
+    assertEqual(AddressCookies.get('y'), 2);
+    assertEqual(AddressCookies.get('z'), 3);
+  });
+
+  test('bc-results', 'přepsání existující hodnoty', function () {
+    AddressCookies.clear();
+    AddressCookies.set('v', 'první');
+    AddressCookies.set('v', 'druhá');
+    assertEqual(AddressCookies.get('v'), 'druhá');
+  });
+
+  test('bc-results', 'null jako hodnota', function () {
+    AddressCookies.clear();
+    AddressCookies.set('n', null);
+    assertEqual(AddressCookies.get('n'), null);
+  });
+
+  // ─── AddressShare ──────────────────────────────────────────────────
+
+  test('as-results', 'getShareURL() + unpack() round-trip', function () {
+    var data = { score: 5, name: 'Test' };
+    var url  = AddressShare.getShareURL(data);
+    assert(typeof url === 'string' && url.length > 0, 'URL je prázdná');
+    assertEqual(AddressShare.unpack(url), data);
+  });
+
+  test('as-results', 'unpack() vrátí null pro čistou URL', function () {
+    assertEqual(AddressShare.unpack('https://example.com/'), null);
+  });
+
+  test('as-results', 'Unicode v AddressShare', function () {
+    var data = { text: 'Žluťoučký kůň úpí' };
+    var url  = AddressShare.getShareURL(data);
+    assertEqual(AddressShare.unpack(url).text, data.text);
+  });
+
+  test('as-results', 'komplexní vnořená data', function () {
+    var data = { answers: [1, 2, 3], flags: [true, false, true], meta: { score: '2/3' } };
+    var url  = AddressShare.getShareURL(data);
+    assertEqual(AddressShare.unpack(url), data);
+  });
+
+  test('as-results', 'getShareURL() s vlastní baseURL', function () {
+    var url = AddressShare.getShareURL({ x: 1 }, 'https://example.com/demo');
+    assert(url.indexOf('https://example.com/demo#') === 0, 'Špatná base URL');
+    assertEqual(AddressShare.unpack(url), { x: 1 });
+  });
+
+  test('as-results', 'getShareURL() stripuje hash z baseURL', function () {
+    var url = AddressShare.getShareURL({ x: 1 }, 'https://example.com/demo#staryhash');
+    assert(url.indexOf('staryhash') === -1, 'Starý hash nebyl odstraněn');
+    assertEqual(AddressShare.unpack(url), { x: 1 });
+  });
+
+  test('as-results', '__bc a __as koexistují v hash', function () {
+    AddressCookies.clear();
+    AddressCookies.set('coexist', 99);
+    AddressShare.share({ shared: true });
+    assert(location.hash.indexOf('__bc') !== -1, 'Chybí __bc');
+    assert(location.hash.indexOf('__as') !== -1, 'Chybí __as');
+    assertEqual(AddressShare.unpack().shared, true);
+    assertEqual(AddressCookies.get('coexist'), 99);
+  });
+
+  test('as-results', 'onReceive() nespustí callback bez dat', function () {
+    var called = false;
+    var tempHash = location.hash;
+    history.replaceState(null, '', '#no-share-data');
+    AddressShare.onReceive(function () { called = true; });
+    history.replaceState(null, '', tempHash || '#');
+    assert(!called, 'Callback byl spuštěn bez __as dat');
+  });
+
+  // ─── Souhrn ────────────────────────────────────────────────────────
+
+  var summary = document.getElementById('summary');
+  var total   = passed + failed;
+  summary.className = 'summary ' + (failed === 0 ? 'all-pass' : 'has-fail');
+  summary.textContent = failed === 0
+    ? '✓ Všechny testy prošly (' + total + '/' + total + ')'
+    : '✗ ' + failed + ' test' + (failed > 1 ? 'y' : '') + ' selhaly — ' + passed + '/' + total + ' prošlo';
+</script>
+
+</body>
+</html>

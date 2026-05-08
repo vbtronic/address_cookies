@@ -2,20 +2,15 @@
   'use strict';
 
   var KEY = '__bc';
+  var MAX = 2000;
 
   function encode(obj) {
-    var bytes = new TextEncoder().encode(JSON.stringify(obj));
-    var binary = '';
-    bytes.forEach(function (b) { binary += String.fromCharCode(b); });
-    return btoa(binary);
+    return btoa(encodeURIComponent(JSON.stringify(obj)));
   }
 
   function decode(str) {
     try {
-      var binary = atob(str);
-      var bytes = new Uint8Array(binary.length);
-      for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      return JSON.parse(new TextDecoder().decode(bytes));
+      return JSON.parse(decodeURIComponent(atob(str)));
     } catch (_) {
       return {};
     }
@@ -23,6 +18,10 @@
 
   function hashParams() {
     return new URLSearchParams(location.hash.slice(1));
+  }
+
+  function urlWith(params) {
+    return location.href.split('#')[0] + '#' + params.toString();
   }
 
   var BC = {
@@ -36,8 +35,29 @@
 
     _save: function () {
       var params = hashParams();
-      params.set(KEY, encode(this._data));
-      history.replaceState(null, '', '#' + params.toString());
+      var data = this._data;
+
+      params.set(KEY, encode(data));
+      if (urlWith(params).length <= MAX) {
+        history.replaceState(null, '', '#' + params.toString());
+        return true;
+      }
+
+      var simplified = JSON.parse(JSON.stringify(data));
+      var tracked = Object.keys(simplified).filter(function (k) {
+        return k.indexOf('_t_') === 0;
+      });
+
+      while (tracked.length > 0) {
+        delete simplified[tracked.pop()];
+        params.set(KEY, encode(simplified));
+        if (urlWith(params).length <= MAX) {
+          history.replaceState(null, '', '#' + params.toString());
+          return true;
+        }
+      }
+
+      return false;
     },
 
     set: function (key, value) {
@@ -91,6 +111,6 @@
   };
 
   BC._load();
-  global.BrowserCookies = BC;
+  global.AddressCookies = BC;
 
 })(window);

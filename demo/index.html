@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Address Cookies – Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #3b5bdb;
+      color: white;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+    header h1 { font-size: 1.75rem; margin-bottom: 0.3rem; }
+    header p { opacity: 0.85; font-size: 0.95rem; }
+    main {
+      flex: 1;
+      max-width: 640px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .card h2 { font-size: 1.05rem; margin-bottom: 1rem; color: #3b5bdb; }
+    .hint {
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 1.25rem;
+      padding: 0.7rem 0.9rem;
+      background: #eef2ff;
+      border-radius: 4px;
+      border-left: 3px solid #3b5bdb;
+    }
+    .question {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+    }
+    .question .label { flex: 1; }
+    .question input[type="number"] {
+      width: 110px;
+      padding: 0.45rem 0.6rem;
+      border: 1.5px solid #ced4da;
+      border-radius: 4px;
+      font-size: 1rem;
+      text-align: center;
+      transition: border-color 0.15s;
+    }
+    .question input.correct { border-color: #2f9e44; background: #ebfbee; }
+    .question input.wrong  { border-color: #e03131; background: #fff5f5; }
+    .answer-note { font-size: 0.8rem; color: #e03131; min-width: 90px; }
+    button {
+      padding: 0.6rem 1.3rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    .btn-primary  { background: #3b5bdb; color: white; }
+    .btn-primary:hover  { background: #3451c7; }
+    .btn-success  { background: #2f9e44; color: white; }
+    .btn-success:hover  { background: #278a3b; }
+    .btn-ghost    { background: #e9ecef; color: #333; }
+    .btn-ghost:hover    { background: #dee2e6; }
+    .score { font-size: 1.6rem; font-weight: bold; margin-bottom: 0.35rem; }
+    .score.good { color: #2f9e44; }
+    .score.ok   { color: #e67700; }
+    .score.bad  { color: #e03131; }
+    .sub { font-size: 0.9rem; color: #666; margin-bottom: 1.25rem; }
+    .share-output { margin-top: 1.25rem; }
+    .share-output p { font-size: 0.85rem; color: #555; margin-bottom: 0.4rem; }
+    .share-output input {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      font-size: 0.78rem;
+      font-family: monospace;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+    .received-row { margin-bottom: 0.45rem; font-size: 0.95rem; }
+    .ok-mark   { color: #2f9e44; font-weight: bold; }
+    .fail-mark { color: #e03131; font-weight: bold; }
+    .correct-answer { color: #888; font-size: 0.82rem; }
+    .received-score { font-size: 1.3rem; font-weight: bold; margin-bottom: 0.9rem; color: #3b5bdb; }
+    footer {
+      text-align: center;
+      padding: 1.75rem 1rem;
+      color: #888;
+      font-size: 0.85rem;
+      border-top: 1px solid #e9ecef;
+    }
+    footer a { color: #3b5bdb; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .sep { margin: 0 0.5rem; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Address Cookies</h1>
+  <p>Testovací demo — matematický kvíz + sdílení výsledků</p>
+</header>
+
+<main>
+
+  <div class="card" id="received-card" hidden>
+    <h2>Výsledky sdílené s tebou</h2>
+    <div id="received-body"></div>
+  </div>
+
+  <div class="card">
+    <h2>Matematický kvíz</h2>
+    <p class="hint">Tvoje odpovědi se průběžně ukládají do URL. Zkus stránku obnovit — odpovědi zůstanou.</p>
+    <div id="questions"></div>
+    <button class="btn-primary" id="check-btn" style="margin-top:1.1rem">Zkontrolovat odpovědi</button>
+  </div>
+
+  <div class="card" id="results-card" hidden>
+    <h2>Výsledky</h2>
+    <div class="score" id="score-val"></div>
+    <p class="sub" id="score-msg"></p>
+    <button class="btn-success" id="share-btn">Sdílet výsledky</button>
+    <div class="share-output" id="share-output" hidden>
+      <p>Zkopíruj a pošli tento odkaz:</p>
+      <input type="text" id="share-url" readonly>
+      <button class="btn-ghost" id="copy-btn">Kopírovat</button>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Viktor Brunclík
+  <span class="sep">|</span>
+  <a href="https://bruncsoft.com">bruncsoft.com</a>
+  <span class="sep">|</span>
+  <a href="https://vbtronic.com">vbtronic.com</a>
+  <br>
+  <span style="font-size:0.78rem; margin-top:0.3rem; display:inline-block">MIT 2026</span>
+</footer>
+
+<script src="../address-cookies.js"></script>
+<script src="../address-share.js"></script>
+<script>
+  var QUESTIONS = [
+    { q: '6 × 8',       a: 48  },
+    { q: '145 + 237',        a: 382 },
+    { q: '480 ÷ 8',     a: 60  },
+    { q: '23 × 15',     a: 345 },
+    { q: '1000 − 463',  a: 537 }
+  ];
+
+  var lastResults = null;
+
+  // Přijatá sdílená data
+  AddressShare.onReceive(function (data) {
+    if (!data || !data.results) return;
+    var card = document.getElementById('received-card');
+    var body = document.getElementById('received-body');
+    var cls  = data.score === 5 ? 'good' : data.score >= 3 ? 'ok' : 'bad';
+    var html = '<div class="received-score">' + data.score + ' / 5</div>';
+    data.results.forEach(function (r, i) {
+      html += '<div class="received-row">' + (i + 1) + '. ' + r.q + ' = ';
+      if (r.correct) {
+        html += '<span class="ok-mark">' + r.answer + ' ✓</span>';
+      } else {
+        html += '<span class="fail-mark">' + r.answer + ' ✗</span>';
+        html += ' <span class="correct-answer">(správně: ' + r.correct_answer + ')</span>';
+      }
+      html += '</div>';
+    });
+    body.innerHTML = html;
+    card.hidden = false;
+  });
+
+  // Vyrenderuj otázky
+  var container = document.getElementById('questions');
+  QUESTIONS.forEach(function (q, i) {
+    var div = document.createElement('div');
+    div.className = 'question';
+    div.innerHTML =
+      '<span class="label">' + (i + 1) + '. &nbsp;<strong>' + q.q + '</strong> =</span>' +
+      '<input type="number" id="q' + (i + 1) + '" name="q' + (i + 1) + '" placeholder="?">' +
+      '<span class="answer-note" id="note' + (i + 1) + '"></span>';
+    container.appendChild(div);
+  });
+
+  // Auto-ukládání odpovědí
+  AddressCookies.autoTrack();
+
+  // Zkontrolování odpovědí
+  document.getElementById('check-btn').addEventListener('click', function () {
+    var results = [];
+    var score   = 0;
+
+    QUESTIONS.forEach(function (q, i) {
+      var input  = document.getElementById('q' + (i + 1));
+      var note   = document.getElementById('note' + (i + 1));
+      var val    = input.value.trim();
+      var answer = val === '' ? null : parseInt(val, 10);
+      var correct = answer === q.a;
+      if (correct) score++;
+
+      input.classList.remove('correct', 'wrong');
+      input.classList.add(correct ? 'correct' : 'wrong');
+      note.textContent = correct ? '' : '✗ správně: ' + q.a;
+
+      results.push({ q: q.q, answer: answer === null ? '—' : answer, correct: correct, correct_answer: q.a });
+    });
+
+    lastResults = { score: score, results: results };
+
+    document.getElementById('score-val').className  = 'score ' + (score === 5 ? 'good' : score >= 3 ? 'ok' : 'bad');
+    document.getElementById('score-val').textContent = score + ' / 5';
+    document.getElementById('score-msg').textContent =
+      score === 5 ? 'Perfektní! Všechno správně.' :
+      score >= 3  ? 'Dobrá práce!' : 'Zkus to znovu.';
+
+    document.getElementById('results-card').hidden = false;
+    document.getElementById('share-output').hidden = true;
+  });
+
+  // Sdílení
+  document.getElementById('share-btn').addEventListener('click', function () {
+    if (!lastResults) return;
+    var url = AddressShare.getShareURL(lastResults);
+    document.getElementById('share-url').value = url;
+    document.getElementById('share-output').hidden = false;
+  });
+
+  document.getElementById('copy-btn').addEventListener('click', function () {
+    if (!lastResults) return;
+    var btn = this;
+    AddressShare.copyToClipboard(lastResults).then(function () {
+      btn.textContent = 'Zkopírovanó!';
+      setTimeout(function () { btn.textContent = 'Kopírovat'; }, 2000);
+    });
+  });
+</script>
+
+</body>
+</html>
