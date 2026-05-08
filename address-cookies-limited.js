@@ -1,7 +1,7 @@
 (function (global) {
   'use strict';
 
-  var KEY = '__bc';
+  var KEY = '__ac';
   var MAX = 2000;
 
   function encode(obj) {

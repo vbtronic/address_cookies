@@ -179,10 +179,10 @@
     assertEqual(AddressCookies.get('missing', 'výchozí'), 'výchozí');
   });
 
-  test('bc-results', 'URL hash obsahuje __bc po set()', function () {
+  test('bc-results', 'URL hash obsahuje __ac po set()', function () {
     AddressCookies.clear();
     AddressCookies.set('url-test', 123);
-    assert(location.hash.indexOf('__bc') !== -1, 'Hash neobsahuje __bc');
+    assert(location.hash.indexOf('__ac') !== -1, 'Hash neobsahuje __ac');
   });
 
   test('bc-results', 'řetězení set().set().set()', function () {
@@ -243,11 +243,11 @@
     assertEqual(AddressShare.unpack(url), { x: 1 });
   });
 
-  test('as-results', '__bc a __as koexistují v hash', function () {
+  test('as-results', '__ac a __as koexistují v hash', function () {
     AddressCookies.clear();
     AddressCookies.set('coexist', 99);
     AddressShare.share({ shared: true });
-    assert(location.hash.indexOf('__bc') !== -1, 'Chybí __bc');
+    assert(location.hash.indexOf('__ac') !== -1, 'Chybí __ac');
     assert(location.hash.indexOf('__as') !== -1, 'Chybí __as');
     assertEqual(AddressShare.unpack().shared, true);
     assertEqual(AddressCookies.get('coexist'), 99);

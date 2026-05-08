@@ -1,7 +1,7 @@
 (function (global) {
   'use strict';
 
-  var KEY = '__bc';
+  var KEY = '__ac';
 
   function encode(obj) {
     var bytes = new TextEncoder().encode(JSON.stringify(obj));

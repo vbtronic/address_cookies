@@ -91,7 +91,7 @@ const data = AddressShare.unpack('https://example.com/#__as=BASE64');
 
 ## Using both together
 
-Both systems store data in the URL hash under separate keys (`__bc` and `__as`) and do not interfere with each other.
+Both systems store data in the URL hash under separate keys (`__ac` and `__as`) and do not interfere with each other.
 
 ```html
 <script src="address-cookies.js"></script>
@@ -106,7 +106,7 @@ document.getElementById('share-btn').addEventListener('click', function () {
 });
 ```
 
-Resulting URL: `https://yoursite.com/#__bc=DATA1&__as=DATA2`
+Resulting URL: `https://yoursite.com/#__ac=DATA1&__as=DATA2`
 
 ---
 
