@@ -2,7 +2,7 @@
 
 Lightweight open-source alternative to browser cookies — stores user data directly in the URL address bar using Base64 encoding. No cookie banners, no server required, works on static sites.
 
-Includes **AddressShare**, a companion system for sharing user state between visitors via a single URL.
+Includes **AddressShare** — pack any data into a URL, send the link to anyone, and when they open it the data is instantly available on their end. No server, no backend.
 
 ---
 
@@ -26,7 +26,7 @@ The 2000-character limit (in the `-limited` variants) applies to the **total URL
 |---|---|
 | `address-cookies.js` | Main library — no character limit (default) |
 | `address-cookies-limited.js` | Variant with 2000-character total URL limit |
-| `address-share.js` | AddressShare — share state via URL, no limit |
+| `address-share.js` | AddressShare — encode data into a shareable link, no limit |
 | `address-share-limited.js` | AddressShare with 2000-character total URL limit |
 
 Use the default (no-limit) versions unless you need compatibility with old proxies or servers that restrict URL length.
@@ -115,8 +115,8 @@ Resulting URL: `https://yoursite.com/#__ac=DATA1&__as=DATA2`
 ### Run locally
 
 ```bash
-git clone https://github.com/vbtronic/browser_cookies.git
-cd browser_cookies
+git clone https://github.com/vbtronic/address_cookies.git
+cd address_cookies
 ```
 
 Then open in a browser (no build step needed):
