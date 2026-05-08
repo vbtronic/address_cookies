@@ -11,10 +11,10 @@ Includes **AddressShare** — pack any data into a URL, send the link to anyone,
 Data is encoded as Base64 and stored in the URL hash:
 
 ```
-https://yoursite.com/page#address-cookies=BASE64DATA
+https://yoursite.com/page#ac.theme=dark&ac.username=John&as.score=5
 ```
 
-No cookies. No localStorage. No backend. The URL is the storage.
+No cookies. No localStorage. No backend. The URL is the storage. Simple values (numbers, strings, booleans) are stored as plain text — you can read them directly in the address bar. Complex values (objects, arrays) are stored as Base64.
 
 The 2000-character limit (in the `-limited` variants) applies to the **total URL length** — origin + path + all hash data combined.
 
@@ -91,7 +91,7 @@ const data = AddressShare.unpack('https://example.com/#address-share=BASE64');
 
 ## Using both together
 
-Both systems store data in the URL hash under separate keys (`address-cookies` and `address-share`) and do not interfere with each other.
+Both systems store data in the URL hash under separate namespaces (`ac.` for AddressCookies, `as.` for AddressShare) and do not interfere with each other.
 
 ```html
 <script src="address-cookies.js"></script>
@@ -106,7 +106,7 @@ document.getElementById('share-btn').addEventListener('click', function () {
 });
 ```
 
-Resulting URL: `https://yoursite.com/#address-cookies=DATA1&address-share=DATA2`
+Resulting URL: `https://yoursite.com/#ac.page=contact&ac.ref=homepage&as.score=5`
 
 ---
 

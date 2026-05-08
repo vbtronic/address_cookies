@@ -1,54 +1,85 @@
 (function (global) {
   'use strict';
 
-  var KEY = 'address-share';
+  var NS  = 'as.';
   var MAX = 2000;
 
-  function encode(obj) {
+  function toB64(obj) {
     return btoa(encodeURIComponent(JSON.stringify(obj))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
-  function decode(str) {
-    try {
-      str = str.replace(/-/g, '+').replace(/_/g, '/');
-      while (str.length % 4) str += '=';
-      return JSON.parse(decodeURIComponent(atob(str)));
-    } catch (_) {
-      return null;
-    }
+  function fromB64(str) {
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (str.length % 4) str += '=';
+    return JSON.parse(decodeURIComponent(atob(str)));
+  }
+
+  function encodeVal(val) {
+    if (val === null)            return 'null';
+    if (val === true)            return 'true';
+    if (val === false)           return 'false';
+    if (typeof val !== 'object') return String(val);
+    return '*' + toB64(val);
+  }
+
+  function decodeVal(str) {
+    if (str === 'null')  return null;
+    if (str === 'true')  return true;
+    if (str === 'false') return false;
+    if (str.charAt(0) === '*') { try { return fromB64(str.slice(1)); } catch (_) { return null; } }
+    var n = Number(str);
+    return str !== '' && !isNaN(n) ? n : str;
   }
 
   function hashParams(url) {
-    var hash = url ? url.slice(url.indexOf('#') + 1) : location.hash.slice(1);
+    var hash = url ? url.slice((url.indexOf('#') + 1) || url.length) : location.hash.slice(1);
     return new URLSearchParams(hash);
   }
 
-  function buildURL(base, params) {
-    return base + '#' + params.toString();
+  function writeData(data, baseParams) {
+    var params = baseParams || new URLSearchParams();
+    Object.keys(data).forEach(function (k) { params.set(NS + k, encodeVal(data[k])); });
+    return params;
+  }
+
+  function readData(params) {
+    var data = {};
+    var found = false;
+    params.forEach(function (val, key) {
+      if (key.indexOf(NS) === 0) { data[key.slice(NS.length)] = decodeVal(val); found = true; }
+    });
+    return found ? data : null;
+  }
+
+  function clearNS(params) {
+    var toRemove = [];
+    params.forEach(function (_, key) { if (key.indexOf(NS) === 0) toRemove.push(key); });
+    toRemove.forEach(function (k) { params.delete(k); });
+  }
+
+  function fullURL(params) {
+    return location.href.split('#')[0] + '#' + params.toString();
   }
 
   var AddressShare = {
     share: function (data) {
-      var base = location.href.split('#')[0];
       var params = hashParams();
-      params.set(KEY, encode(data));
-      var url = buildURL(base, params);
-      if (url.length > MAX) return false;
+      clearNS(params);
+      writeData(data, params);
+      if (fullURL(params).length > MAX) return false;
       history.replaceState(null, '', '#' + params.toString());
       return location.href;
     },
 
     unpack: function (url) {
-      var params = hashParams(url);
-      var raw = params.get(KEY);
-      return raw ? decode(raw) : null;
+      return readData(hashParams(url));
     },
 
     getShareURL: function (data, baseURL) {
-      var base = (baseURL || location.href).split('#')[0];
+      var base = (baseURL ? baseURL.split('#')[0] : location.href.split('#')[0]);
       var params = new URLSearchParams();
-      params.set(KEY, encode(data));
-      var url = buildURL(base, params);
+      writeData(data, params);
+      var url = base + '#' + params.toString();
       return url.length <= MAX ? url : null;
     },
 

@@ -1,26 +1,39 @@
 (function (global) {
   'use strict';
 
-  var KEY = 'address-cookies';
+  var NS = 'ac.';
 
-  function encode(obj) {
+  function toB64(obj) {
     var bytes = new TextEncoder().encode(JSON.stringify(obj));
-    var binary = '';
-    bytes.forEach(function (b) { binary += String.fromCharCode(b); });
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    var bin = '';
+    bytes.forEach(function (b) { bin += String.fromCharCode(b); });
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
-  function decode(str) {
-    try {
-      str = str.replace(/-/g, '+').replace(/_/g, '/');
-      while (str.length % 4) str += '=';
-      var binary = atob(str);
-      var bytes = new Uint8Array(binary.length);
-      for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      return JSON.parse(new TextDecoder().decode(bytes));
-    } catch (_) {
-      return {};
-    }
+  function fromB64(str) {
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (str.length % 4) str += '=';
+    var bin = atob(str);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+
+  function encodeVal(val) {
+    if (val === null)           return 'null';
+    if (val === true)           return 'true';
+    if (val === false)          return 'false';
+    if (typeof val !== 'object') return String(val);
+    return '*' + toB64(val);
+  }
+
+  function decodeVal(str) {
+    if (str === 'null')  return null;
+    if (str === 'true')  return true;
+    if (str === 'false') return false;
+    if (str.charAt(0) === '*') { try { return fromB64(str.slice(1)); } catch (_) { return null; } }
+    var n = Number(str);
+    return str !== '' && !isNaN(n) ? n : str;
   }
 
   function hashParams() {
@@ -29,16 +42,24 @@
 
   var BC = {
     _data: {},
+    _autoTracked: [],
 
     _load: function () {
       var params = hashParams();
-      var raw = params.get(KEY);
-      this._data = raw ? decode(raw) : {};
+      var data = {};
+      params.forEach(function (val, key) {
+        if (key.indexOf(NS) === 0) data[key.slice(NS.length)] = decodeVal(val);
+      });
+      this._data = data;
     },
 
     _save: function () {
       var params = hashParams();
-      params.set(KEY, encode(this._data));
+      var self = this;
+      var toRemove = [];
+      params.forEach(function (_, key) { if (key.indexOf(NS) === 0) toRemove.push(key); });
+      toRemove.forEach(function (k) { params.delete(k); });
+      Object.keys(this._data).forEach(function (k) { params.set(NS + k, encodeVal(self._data[k])); });
       history.replaceState(null, '', '#' + params.toString());
     },
 
@@ -74,14 +95,14 @@
       document.querySelectorAll(selector).forEach(function (el) {
         var id = el.id || el.name;
         if (!id) return;
-        var k = '_t_' + id;
-        var saved = self.get(k);
+        self._autoTracked.push(id);
+        var saved = self.get(id);
         if (el.type === 'checkbox' || el.type === 'radio') {
           if (saved !== undefined) el.checked = saved;
-          el.addEventListener('change', function () { self.set(k, el.checked); });
+          el.addEventListener('change', function () { self.set(id, el.checked); });
         } else {
           if (saved !== undefined) el.value = saved;
-          el.addEventListener('input', function () { self.set(k, el.value); });
+          el.addEventListener('input', function () { self.set(id, el.value); });
         }
       });
       return this;

@@ -1,64 +1,82 @@
 (function (global) {
   'use strict';
 
-  var KEY = 'address-cookies';
+  var NS  = 'ac.';
   var MAX = 2000;
 
-  function encode(obj) {
+  function toB64(obj) {
     return btoa(encodeURIComponent(JSON.stringify(obj))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
-  function decode(str) {
-    try {
-      str = str.replace(/-/g, '+').replace(/_/g, '/');
-      while (str.length % 4) str += '=';
-      return JSON.parse(decodeURIComponent(atob(str)));
-    } catch (_) {
-      return {};
-    }
+  function fromB64(str) {
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (str.length % 4) str += '=';
+    return JSON.parse(decodeURIComponent(atob(str)));
+  }
+
+  function encodeVal(val) {
+    if (val === null)            return 'null';
+    if (val === true)            return 'true';
+    if (val === false)           return 'false';
+    if (typeof val !== 'object') return String(val);
+    return '*' + toB64(val);
+  }
+
+  function decodeVal(str) {
+    if (str === 'null')  return null;
+    if (str === 'true')  return true;
+    if (str === 'false') return false;
+    if (str.charAt(0) === '*') { try { return fromB64(str.slice(1)); } catch (_) { return null; } }
+    var n = Number(str);
+    return str !== '' && !isNaN(n) ? n : str;
   }
 
   function hashParams() {
     return new URLSearchParams(location.hash.slice(1));
   }
 
-  function urlWith(params) {
+  function fullURL(params) {
     return location.href.split('#')[0] + '#' + params.toString();
   }
 
   var BC = {
     _data: {},
+    _autoTracked: [],
 
     _load: function () {
       var params = hashParams();
-      var raw = params.get(KEY);
-      this._data = raw ? decode(raw) : {};
+      var data = {};
+      params.forEach(function (val, key) {
+        if (key.indexOf(NS) === 0) data[key.slice(NS.length)] = decodeVal(val);
+      });
+      this._data = data;
+    },
+
+    _buildParams: function (data) {
+      var params = hashParams();
+      var toRemove = [];
+      params.forEach(function (_, key) { if (key.indexOf(NS) === 0) toRemove.push(key); });
+      toRemove.forEach(function (k) { params.delete(k); });
+      Object.keys(data).forEach(function (k) { params.set(NS + k, encodeVal(data[k])); });
+      return params;
     },
 
     _save: function () {
-      var params = hashParams();
-      var data = this._data;
-
-      params.set(KEY, encode(data));
-      if (urlWith(params).length <= MAX) {
+      var params = this._buildParams(this._data);
+      if (fullURL(params).length <= MAX) {
         history.replaceState(null, '', '#' + params.toString());
         return true;
       }
-
-      var simplified = JSON.parse(JSON.stringify(data));
-      var tracked = Object.keys(simplified).filter(function (k) {
-        return k.indexOf('_t_') === 0;
-      });
-
-      while (tracked.length > 0) {
-        delete simplified[tracked.pop()];
-        params.set(KEY, encode(simplified));
-        if (urlWith(params).length <= MAX) {
+      var simplified = JSON.parse(JSON.stringify(this._data));
+      var tracked = this._autoTracked.slice().reverse();
+      for (var i = 0; i < tracked.length; i++) {
+        delete simplified[tracked[i]];
+        params = this._buildParams(simplified);
+        if (fullURL(params).length <= MAX) {
           history.replaceState(null, '', '#' + params.toString());
           return true;
         }
       }
-
       return false;
     },
 
@@ -94,14 +112,14 @@
       document.querySelectorAll(selector).forEach(function (el) {
         var id = el.id || el.name;
         if (!id) return;
-        var k = '_t_' + id;
-        var saved = self.get(k);
+        self._autoTracked.push(id);
+        var saved = self.get(id);
         if (el.type === 'checkbox' || el.type === 'radio') {
           if (saved !== undefined) el.checked = saved;
-          el.addEventListener('change', function () { self.set(k, el.checked); });
+          el.addEventListener('change', function () { self.set(id, el.checked); });
         } else {
           if (saved !== undefined) el.value = saved;
-          el.addEventListener('input', function () { self.set(k, el.value); });
+          el.addEventListener('input', function () { self.set(id, el.value); });
         }
       });
       return this;

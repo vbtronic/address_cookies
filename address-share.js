@@ -1,52 +1,84 @@
 (function (global) {
   'use strict';
 
-  var KEY = 'address-share';
+  var NS = 'as.';
 
-  function encode(obj) {
+  function toB64(obj) {
     var bytes = new TextEncoder().encode(JSON.stringify(obj));
-    var binary = '';
-    bytes.forEach(function (b) { binary += String.fromCharCode(b); });
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    var bin = '';
+    bytes.forEach(function (b) { bin += String.fromCharCode(b); });
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
-  function decode(str) {
-    try {
-      str = str.replace(/-/g, '+').replace(/_/g, '/');
-      while (str.length % 4) str += '=';
-      var binary = atob(str);
-      var bytes = new Uint8Array(binary.length);
-      for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      return JSON.parse(new TextDecoder().decode(bytes));
-    } catch (_) {
-      return null;
-    }
+  function fromB64(str) {
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (str.length % 4) str += '=';
+    var bin = atob(str);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+
+  function encodeVal(val) {
+    if (val === null)            return 'null';
+    if (val === true)            return 'true';
+    if (val === false)           return 'false';
+    if (typeof val !== 'object') return String(val);
+    return '*' + toB64(val);
+  }
+
+  function decodeVal(str) {
+    if (str === 'null')  return null;
+    if (str === 'true')  return true;
+    if (str === 'false') return false;
+    if (str.charAt(0) === '*') { try { return fromB64(str.slice(1)); } catch (_) { return null; } }
+    var n = Number(str);
+    return str !== '' && !isNaN(n) ? n : str;
   }
 
   function hashParams(url) {
-    var hash = url ? url.slice(url.indexOf('#') + 1) : location.hash.slice(1);
+    var hash = url ? url.slice((url.indexOf('#') + 1) || url.length) : location.hash.slice(1);
     return new URLSearchParams(hash);
+  }
+
+  function writeData(data, baseParams) {
+    var params = baseParams || new URLSearchParams();
+    Object.keys(data).forEach(function (k) { params.set(NS + k, encodeVal(data[k])); });
+    return params;
+  }
+
+  function readData(params) {
+    var data = {};
+    var found = false;
+    params.forEach(function (val, key) {
+      if (key.indexOf(NS) === 0) { data[key.slice(NS.length)] = decodeVal(val); found = true; }
+    });
+    return found ? data : null;
+  }
+
+  function clearNS(params) {
+    var toRemove = [];
+    params.forEach(function (_, key) { if (key.indexOf(NS) === 0) toRemove.push(key); });
+    toRemove.forEach(function (k) { params.delete(k); });
   }
 
   var AddressShare = {
     share: function (data) {
       var params = hashParams();
-      params.set(KEY, encode(data));
-      var newHash = '#' + params.toString();
-      history.replaceState(null, '', newHash);
+      clearNS(params);
+      writeData(data, params);
+      history.replaceState(null, '', '#' + params.toString());
       return location.href;
     },
 
     unpack: function (url) {
-      var params = hashParams(url);
-      var raw = params.get(KEY);
-      return raw ? decode(raw) : null;
+      return readData(hashParams(url));
     },
 
     getShareURL: function (data, baseURL) {
-      var base = (baseURL || location.href).split('#')[0];
+      var base = (baseURL ? baseURL.split('#')[0] : location.href.split('#')[0]);
       var params = new URLSearchParams();
-      params.set(KEY, encode(data));
+      writeData(data, params);
       return base + '#' + params.toString();
     },
 
