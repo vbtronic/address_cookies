@@ -168,7 +168,6 @@
 </footer>
 
 <script src="../address-cookies.js"></script>
-<script src="../address-share.js"></script>
 <script>
   var QUESTIONS = [
     { q: '6 × 8',       a: 48  },
@@ -180,7 +179,7 @@
 
   var lastResults = null;
 
-  AddressShare.onReceive(function (data) {
+  AddressCookies.onReceive(function (data) {
     if (!data || !data.results) return;
     var card = document.getElementById('received-card');
     var body = document.getElementById('received-body');
@@ -245,7 +244,7 @@
 
   document.getElementById('share-btn').addEventListener('click', function () {
     if (!lastResults) return;
-    var url = AddressShare.getShareURL(lastResults);
+    var url = AddressCookies.getShareURL(lastResults);
     document.getElementById('share-url').value = url;
     document.getElementById('share-output').hidden = false;
   });
@@ -253,7 +252,7 @@
   document.getElementById('copy-btn').addEventListener('click', function () {
     if (!lastResults) return;
     var btn = this;
-    AddressShare.copyToClipboard(lastResults).then(function () {
+    AddressCookies.copyToClipboard(lastResults).then(function () {
       btn.textContent = 'Copied!';
       setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
     });

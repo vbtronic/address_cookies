@@ -87,7 +87,6 @@
 </footer>
 
 <script src="../address-cookies.js"></script>
-<script src="../address-share.js"></script>
 <script>
   var passed = 0;
   var failed = 0;
@@ -210,46 +209,46 @@
 
   test('as-results', 'getShareURL() + unpack() round-trip', function () {
     var data = { score: 5, name: 'Test' };
-    var url  = AddressShare.getShareURL(data);
+    var url  = AddressCookies.getShareURL(data);
     assert(typeof url === 'string' && url.length > 0, 'URL is empty');
-    assertEqual(AddressShare.unpack(url), data);
+    assertEqual(AddressCookies.unpack(url), data);
   });
 
   test('as-results', 'unpack() returns null for a plain URL', function () {
-    assertEqual(AddressShare.unpack('https://example.com/'), null);
+    assertEqual(AddressCookies.unpack('https://example.com/'), null);
   });
 
   test('as-results', 'Unicode support', function () {
     var data = { text: 'Žluťoučký kůň' };
-    var url  = AddressShare.getShareURL(data);
-    assertEqual(AddressShare.unpack(url).text, data.text);
+    var url  = AddressCookies.getShareURL(data);
+    assertEqual(AddressCookies.unpack(url).text, data.text);
   });
 
   test('as-results', 'complex nested data', function () {
     var data = { answers: [1, 2, 3], flags: [true, false, true], meta: { score: '2/3' } };
-    var url  = AddressShare.getShareURL(data);
-    assertEqual(AddressShare.unpack(url), data);
+    var url  = AddressCookies.getShareURL(data);
+    assertEqual(AddressCookies.unpack(url), data);
   });
 
   test('as-results', 'getShareURL() with custom baseURL', function () {
-    var url = AddressShare.getShareURL({ x: 1 }, 'https://example.com/demo');
+    var url = AddressCookies.getShareURL({ x: 1 }, 'https://example.com/demo');
     assert(url.indexOf('https://example.com/demo#') === 0, 'Wrong base URL');
-    assertEqual(AddressShare.unpack(url), { x: 1 });
+    assertEqual(AddressCookies.unpack(url), { x: 1 });
   });
 
   test('as-results', 'getShareURL() strips existing hash from baseURL', function () {
-    var url = AddressShare.getShareURL({ x: 1 }, 'https://example.com/demo#oldhash');
+    var url = AddressCookies.getShareURL({ x: 1 }, 'https://example.com/demo#oldhash');
     assert(url.indexOf('oldhash') === -1, 'Old hash was not stripped');
-    assertEqual(AddressShare.unpack(url), { x: 1 });
+    assertEqual(AddressCookies.unpack(url), { x: 1 });
   });
 
   test('as-results', 'ac. and as. keys coexist in the hash', function () {
     AddressCookies.clear();
     AddressCookies.set('coexist', 99);
-    AddressShare.share({ shared: true });
+    AddressCookies.share({ shared: true });
     assert(location.hash.indexOf('ac.coexist=99') !== -1, 'Missing ac.coexist=99 in hash');
     assert(location.hash.indexOf('as.shared=true') !== -1, 'Missing as.shared=true in hash');
-    assertEqual(AddressShare.unpack().shared, true);
+    assertEqual(AddressCookies.unpack().shared, true);
     assertEqual(AddressCookies.get('coexist'), 99);
   });
 
@@ -257,7 +256,7 @@
     var called = false;
     var tempHash = location.hash;
     history.replaceState(null, '', '#no-share-data');
-    AddressShare.onReceive(function () { called = true; });
+    AddressCookies.onReceive(function () { called = true; });
     history.replaceState(null, '', tempHash || '#');
     assert(!called, 'Callback fired without as. data');
   });

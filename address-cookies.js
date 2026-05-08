@@ -1,7 +1,8 @@
 (function (global) {
   'use strict';
 
-  var NS = 'ac.';
+  var AC = 'ac.';
+  var AS = 'as.';
 
   function toB64(obj) {
     var bytes = new TextEncoder().encode(JSON.stringify(obj));
@@ -20,9 +21,9 @@
   }
 
   function encodeVal(val) {
-    if (val === null)           return 'null';
-    if (val === true)           return 'true';
-    if (val === false)          return 'false';
+    if (val === null)            return 'null';
+    if (val === true)            return 'true';
+    if (val === false)           return 'false';
     if (typeof val !== 'object') return String(val);
     return '*' + toB64(val);
   }
@@ -36,30 +37,43 @@
     return str !== '' && !isNaN(n) ? n : str;
   }
 
-  function hashParams() {
-    return new URLSearchParams(location.hash.slice(1));
+  function hashParams(url) {
+    var hash = url ? url.slice((url.indexOf('#') + 1) || url.length) : location.hash.slice(1);
+    return new URLSearchParams(hash);
   }
 
-  var BC = {
+  function clearNS(params, ns) {
+    var toRemove = [];
+    params.forEach(function (_, k) { if (k.indexOf(ns) === 0) toRemove.push(k); });
+    toRemove.forEach(function (k) { params.delete(k); });
+  }
+
+  function writeNS(params, ns, data) {
+    Object.keys(data).forEach(function (k) { params.set(ns + k, encodeVal(data[k])); });
+  }
+
+  function readNS(params, ns) {
+    var data = {}, found = false;
+    params.forEach(function (val, k) {
+      if (k.indexOf(ns) === 0) { data[k.slice(ns.length)] = decodeVal(val); found = true; }
+    });
+    return found ? data : null;
+  }
+
+  var AddressCookies = {
     _data: {},
     _autoTracked: [],
 
     _load: function () {
-      var params = hashParams();
-      var data = {};
-      params.forEach(function (val, key) {
-        if (key.indexOf(NS) === 0) data[key.slice(NS.length)] = decodeVal(val);
-      });
-      this._data = data;
+      var result = readNS(hashParams(), AC);
+      this._data = result || {};
     },
 
     _save: function () {
       var params = hashParams();
       var self = this;
-      var toRemove = [];
-      params.forEach(function (_, key) { if (key.indexOf(NS) === 0) toRemove.push(key); });
-      toRemove.forEach(function (k) { params.delete(k); });
-      Object.keys(this._data).forEach(function (k) { params.set(NS + k, encodeVal(self._data[k])); });
+      clearNS(params, AC);
+      writeNS(params, AC, this._data);
       history.replaceState(null, '', '#' + params.toString());
     },
 
@@ -110,10 +124,60 @@
 
     getURL: function () {
       return location.href;
+    },
+
+    // ── Share ──────────────────────────────────────────────────────────
+
+    share: function (data) {
+      var params = hashParams();
+      clearNS(params, AS);
+      writeNS(params, AS, data);
+      history.replaceState(null, '', '#' + params.toString());
+      return location.href;
+    },
+
+    getShareURL: function (data, baseURL) {
+      var base, params;
+      if (baseURL) {
+        base   = baseURL.split('#')[0];
+        params = new URLSearchParams();
+      } else {
+        base   = location.href.split('#')[0];
+        params = hashParams();
+        clearNS(params, AS);
+      }
+      writeNS(params, AS, data);
+      return base + '#' + params.toString();
+    },
+
+    onReceive: function (callback) {
+      var data = readNS(hashParams(), AS);
+      if (data !== null) callback(data);
+      return this;
+    },
+
+    unpack: function (url) {
+      return readNS(hashParams(url), AS);
+    },
+
+    copyToClipboard: function (data) {
+      var url = this.getShareURL(data);
+      if (navigator.clipboard) {
+        return navigator.clipboard.writeText(url).then(function () { return url; });
+      }
+      var ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      return Promise.resolve(url);
     }
   };
 
-  BC._load();
-  global.AddressCookies = BC;
+  AddressCookies._load();
+  global.AddressCookies = AddressCookies;
 
 })(window);
