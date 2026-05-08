@@ -1,97 +1,97 @@
 # Address Cookies
 
-Lehká open-source alternativa k browser cookies — ukládá data uživatele přímo do adresního řádku pomocí Base64 kódování. Žádné cookie bannery, žádný server, funguje na statických stránkách.
+Lightweight open-source alternative to browser cookies — stores user data directly in the URL address bar using Base64 encoding. No cookie banners, no server required, works on static sites.
 
-Součástí je **AddressShare** — zabal libovolná data do URL, pošli odkaz komukoliv, a když ho otevře, data jsou okamžitě dostupná. Žádný server, žádný backend.
+Includes **AddressShare** — pack any data into a URL, send the link to anyone, and when they open it the data is instantly available on their end. No server, no backend.
 
 ---
 
-## Jak to funguje
+## How it works
 
-Data jsou uložena v URL hashi:
+Data is encoded as Base64 and stored in the URL hash:
 
 ```
 https://yoursite.com/page#ac.theme=dark&ac.username=John&as.score=5
 ```
 
-Žádné cookies. Žádný localStorage. Žádný backend. URL je úložiště. Jednoduché hodnoty (čísla, řetězce, booleany) jsou uloženy jako prostý text — přečteš je přímo v adresním řádku. Složité hodnoty (objekty, pole) jsou uloženy jako Base64.
+No cookies. No localStorage. No backend. The URL is the storage. Simple values (numbers, strings, booleans) are stored as plain text — you can read them directly in the address bar. Complex values (objects, arrays) are stored as Base64.
 
-Limit 2000 znaků (ve variantách `-limited`) platí pro **celkovou délku URL** — origin + cesta + veškerá hash data dohromady.
+The 2000-character limit (in the `-limited` variants) applies to the **total URL length** — origin + path + all hash data combined.
 
 ---
 
-## Soubory
+## Files
 
-| Soubor | Popis |
+| File | Description |
 |---|---|
-| `address-cookies.js` | Hlavní knihovna — bez omezení délky (výchozí) |
-| `address-cookies-limited.js` | Varianta s limitem 2000 znaků celkové URL |
-| `address-share.js` | AddressShare — data do sdíleného odkazu, bez limitu |
-| `address-share-limited.js` | AddressShare s limitem 2000 znaků |
+| `address-cookies.js` | Main library — no character limit (default) |
+| `address-cookies-limited.js` | Variant with 2000-character total URL limit |
+| `address-share.js` | AddressShare — encode data into a shareable link, no limit |
+| `address-share-limited.js` | AddressShare with 2000-character total URL limit |
 
-Používej výchozí varianty (bez limitu), pokud nepotřebuješ kompatibilitu se starými proxy nebo servery omezujícími délku URL.
+Use the default (no-limit) versions unless you need compatibility with old proxies or servers that restrict URL length.
 
 ---
 
-## Address Cookies — použití
+## Address Cookies — usage
 
 ```html
 <script src="address-cookies.js"></script>
 ```
 
 ```js
-// Uložení a načtení hodnot
+// Store and retrieve values
 AddressCookies.set('theme', 'dark');
 AddressCookies.get('theme');           // 'dark'
 AddressCookies.remove('theme');
 AddressCookies.clear();
 
-// Automatické sledování všech inputů (ukládá a obnovuje při reload)
+// Auto-track all inputs (saves and restores on reload)
 AddressCookies.autoTrack();
 
-// Nebo cílení na konkrétní elementy
+// Or target specific elements
 AddressCookies.autoTrack('#myForm input, #myForm textarea');
 
-// Získání aktuální URL s daty
+// Get the current shareable URL
 AddressCookies.getURL();
 ```
 
-`autoTrack()` přečte URL při načtení stránky a automaticky obnoví všechny sledované hodnoty inputů.
+`autoTrack()` reads the current URL on load and restores all tracked input values automatically.
 
 ---
 
-## AddressShare — použití
+## AddressShare — usage
 
 ```html
 <script src="address-share.js"></script>
 ```
 
 ```js
-// Vytvoř sdílitelnou URL bez změny té aktuální
+// Build a shareable URL without changing the current one
 const link = AddressShare.getShareURL({ report: 'Issue #42', status: 'open' });
 
-// Zakóduj data do aktuální URL a vrať ji
+// Update the current URL with shared data and return it
 const url = AddressShare.share({ message: 'Hello from the static page' });
 
-// Na přijímací stránce — spustí callback pokud URL obsahuje sdílená data
+// On the receiving page — runs callback if shared data is present in URL
 AddressShare.onReceive(function (data) {
   console.log(data.message);
 });
 
-// Zkopíruj sdílitelnou URL do schránky
+// Copy shareable URL to clipboard
 AddressShare.copyToClipboard({ note: 'Check this out' }).then(function (url) {
-  console.log('Zkopírováno:', url);
+  console.log('Copied:', url);
 });
 
-// Ručně rozbal data z libovolné URL
-const data = AddressShare.unpack('https://example.com/#as.score=5');
+// Manually unpack data from any URL string
+const data = AddressShare.unpack('https://example.com/#address-share=BASE64');
 ```
 
 ---
 
-## Použití obou systémů zároveň
+## Using both together
 
-Oba systémy ukládají data do URL hashe v oddělených jmenných prostorech (`ac.` pro AddressCookies, `as.` pro AddressShare) a vzájemně si nepřekáží.
+Both systems store data in the URL hash under separate namespaces (`ac.` for AddressCookies, `as.` for AddressShare) and do not interfere with each other.
 
 ```html
 <script src="address-cookies.js"></script>
@@ -106,20 +106,20 @@ document.getElementById('share-btn').addEventListener('click', function () {
 });
 ```
 
-Výsledná URL: `https://yoursite.com/#ac.page=contact&ac.ref=homepage&as.score=5`
+Resulting URL: `https://yoursite.com/#ac.page=contact&ac.ref=homepage&as.score=5`
 
 ---
 
-## Demo a testy
+## Demo & tests
 
-### Spuštění lokálně
+### Run locally
 
 ```bash
 git clone https://github.com/vbtronic/address_cookies.git
 cd address_cookies
 ```
 
-Otevři v prohlížeči (není potřeba žádný build):
+Then open in a browser (no build step needed):
 
 ```bash
 # Python
@@ -130,22 +130,22 @@ npx serve .
 ```
 
 - Demo: [http://localhost:8080/demo/](http://localhost:8080/demo/)
-- Testy: [http://localhost:8080/tests/](http://localhost:8080/tests/)
+- Tests: [http://localhost:8080/tests/](http://localhost:8080/tests/)
 
-Soubory lze otevřít i přímo přes `file://` — většina moderních prohlížečů to podporuje bez serveru.
+You can also open the files directly via `file://` — most browsers support this without a server.
 
 ---
 
-## Konzultace, webináře a sponzoring
+## Consulting, webinars & sponsoring
 
-Potřebuješ pomoc s integrací Address Cookies, stavbou webů bez cookies, nebo chceš webinář? Projekt lze také přímo podpořit.
+Need help integrating Address Cookies, building cookie-free static sites, or want a deep-dive webinar? You can also support the project directly.
 
 [opensource.bruncsoft.com](https://opensource.bruncsoft.com)
 
 ---
 
-## Licence
+## License
 
-MIT Licence — © 2026 Viktor Brunclík
+MIT License — © 2026 Viktor Brunclík
 
 [bruncsoft.com](https://bruncsoft.com) · [vbtronic.com](https://vbtronic.com)
