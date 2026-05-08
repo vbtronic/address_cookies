@@ -179,10 +179,10 @@
     assertEqual(AddressCookies.get('missing', 'default'), 'default');
   });
 
-  test('bc-results', 'URL hash contains __ac after set()', function () {
+  test('bc-results', 'URL hash contains address-cookies after set()', function () {
     AddressCookies.clear();
     AddressCookies.set('url-test', 123);
-    assert(location.hash.indexOf('__ac') !== -1, 'Hash does not contain __ac');
+    assert(location.hash.indexOf('address-cookies') !== -1, 'Hash does not contain address-cookies');
   });
 
   test('bc-results', 'chained set().set().set()', function () {
@@ -243,12 +243,12 @@
     assertEqual(AddressShare.unpack(url), { x: 1 });
   });
 
-  test('as-results', '__ac and __as coexist in the hash', function () {
+  test('as-results', 'address-cookies and address-share coexist in the hash', function () {
     AddressCookies.clear();
     AddressCookies.set('coexist', 99);
     AddressShare.share({ shared: true });
-    assert(location.hash.indexOf('__ac') !== -1, 'Missing __ac in hash');
-    assert(location.hash.indexOf('__as') !== -1, 'Missing __as in hash');
+    assert(location.hash.indexOf('address-cookies') !== -1, 'Missing address-cookies in hash');
+    assert(location.hash.indexOf('address-share') !== -1, 'Missing address-share in hash');
     assertEqual(AddressShare.unpack().shared, true);
     assertEqual(AddressCookies.get('coexist'), 99);
   });
@@ -259,7 +259,7 @@
     history.replaceState(null, '', '#no-share-data');
     AddressShare.onReceive(function () { called = true; });
     history.replaceState(null, '', tempHash || '#');
-    assert(!called, 'Callback fired without __as data');
+    assert(!called, 'Callback fired without address-share data');
   });
 
   // ─── Summary ───────────────────────────────────────────────────────

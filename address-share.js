@@ -1,7 +1,7 @@
 (function (global) {
   'use strict';
 
-  var KEY = '__as';
+  var KEY = 'address-share';
 
   function encode(obj) {
     var bytes = new TextEncoder().encode(JSON.stringify(obj));

@@ -11,7 +11,7 @@ Includes **AddressShare** — pack any data into a URL, send the link to anyone,
 Data is encoded as Base64 and stored in the URL hash:
 
 ```
-https://yoursite.com/page#__ac=BASE64DATA
+https://yoursite.com/page#address-cookies=BASE64DATA
 ```
 
 No cookies. No localStorage. No backend. The URL is the storage.
@@ -84,14 +84,14 @@ AddressShare.copyToClipboard({ note: 'Check this out' }).then(function (url) {
 });
 
 // Manually unpack data from any URL string
-const data = AddressShare.unpack('https://example.com/#__as=BASE64');
+const data = AddressShare.unpack('https://example.com/#address-share=BASE64');
 ```
 
 ---
 
 ## Using both together
 
-Both systems store data in the URL hash under separate keys (`__ac` and `__as`) and do not interfere with each other.
+Both systems store data in the URL hash under separate keys (`address-cookies` and `address-share`) and do not interfere with each other.
 
 ```html
 <script src="address-cookies.js"></script>
@@ -106,7 +106,7 @@ document.getElementById('share-btn').addEventListener('click', function () {
 });
 ```
 
-Resulting URL: `https://yoursite.com/#__ac=DATA1&__as=DATA2`
+Resulting URL: `https://yoursite.com/#address-cookies=DATA1&address-share=DATA2`
 
 ---
 
@@ -136,9 +136,9 @@ You can also open the files directly via `file://` — most browsers support thi
 
 ---
 
-## Consulting & webinars
+## Consulting, webinars & sponsoring
 
-Need help integrating Address Cookies, building cookie-free static sites, or want a deep-dive webinar?
+Need help integrating Address Cookies, building cookie-free static sites, or want a deep-dive webinar? You can also support the project directly.
 
 [opensource.bruncsoft.com](https://opensource.bruncsoft.com)
 

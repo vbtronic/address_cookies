@@ -1,7 +1,7 @@
 (function (global) {
   'use strict';
 
-  var KEY = '__ac';
+  var KEY = 'address-cookies';
 
   function encode(obj) {
     var bytes = new TextEncoder().encode(JSON.stringify(obj));

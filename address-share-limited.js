@@ -1,7 +1,7 @@
 (function (global) {
   'use strict';
 
-  var KEY = '__as';
+  var KEY = 'address-share';
   var MAX = 2000;
 
   function encode(obj) {

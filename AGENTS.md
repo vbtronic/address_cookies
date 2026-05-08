@@ -23,8 +23,8 @@ AGENTS.md                   — this file
 ## Architecture
 
 - Data is stored in the URL hash (`#`) as URLSearchParams
-- AddressCookies uses the key `__ac`, AddressShare uses `__as`
-- Both can coexist in the same hash: `#__ac=DATA&__as=DATA`
+- AddressCookies uses the key `address-cookies`, AddressShare uses `address-share`
+- Both can coexist in the same hash: `#address-cookies=DATA&address-share=DATA`
 - Encoding: UTF-8 bytes → Base64 (`TextEncoder` in default versions)
 - Limited versions use `encodeURIComponent` + `btoa` for broader compatibility
 
