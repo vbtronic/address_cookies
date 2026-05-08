@@ -76,8 +76,15 @@
     },
 
     getShareURL: function (data, baseURL) {
-      var base = (baseURL ? baseURL.split('#')[0] : location.href.split('#')[0]);
-      var params = new URLSearchParams();
+      var base, params;
+      if (baseURL) {
+        base   = baseURL.split('#')[0];
+        params = new URLSearchParams();
+      } else {
+        base   = location.href.split('#')[0];
+        params = hashParams();
+        clearNS(params);
+      }
       writeData(data, params);
       return base + '#' + params.toString();
     },
