@@ -7,11 +7,13 @@
     var bytes = new TextEncoder().encode(JSON.stringify(obj));
     var binary = '';
     bytes.forEach(function (b) { binary += String.fromCharCode(b); });
-    return btoa(binary);
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
   function decode(str) {
     try {
+      str = str.replace(/-/g, '+').replace(/_/g, '/');
+      while (str.length % 4) str += '=';
       var binary = atob(str);
       var bytes = new Uint8Array(binary.length);
       for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);

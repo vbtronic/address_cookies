@@ -5,11 +5,13 @@
   var MAX = 2000;
 
   function encode(obj) {
-    return btoa(encodeURIComponent(JSON.stringify(obj)));
+    return btoa(encodeURIComponent(JSON.stringify(obj))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
   function decode(str) {
     try {
+      str = str.replace(/-/g, '+').replace(/_/g, '/');
+      while (str.length % 4) str += '=';
       return JSON.parse(decodeURIComponent(atob(str)));
     } catch (_) {
       return {};
