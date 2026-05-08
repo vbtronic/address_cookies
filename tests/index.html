@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Address Cookies – Testy</title>
+  <title>Address Cookies – Tests</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -64,10 +64,10 @@
 </head>
 <body>
 
-<h1>Address Cookies – Testy</h1>
-<p class="subtitle">Automaticky spuštěné testy knihoven AddressCookies a AddressShare</p>
+<h1>Address Cookies – Tests</h1>
+<p class="subtitle">Automatically runs on open — tests AddressCookies and AddressShare</p>
 
-<div class="summary" id="summary">Spouštím...</div>
+<div class="summary" id="summary">Running...</div>
 
 <div class="suite">
   <div class="suite-title">AddressCookies</div>
@@ -98,15 +98,15 @@
 
   function assertEqual(a, b, msg) {
     var as = JSON.stringify(a), bs = JSON.stringify(b);
-    if (as !== bs) throw new Error(msg || 'Dostali jsme ' + as + ', očekáváno ' + bs);
+    if (as !== bs) throw new Error(msg || 'Got ' + as + ', expected ' + bs);
   }
 
   function test(containerId, name, fn) {
-    var wrap = document.createElement('div');
+    var wrap  = document.createElement('div');
     wrap.className = 'test';
     var badge = document.createElement('span');
     badge.className = 'badge';
-    var body = document.createElement('div');
+    var body  = document.createElement('div');
     body.className = 'test-body';
     body.textContent = name;
     wrap.appendChild(badge);
@@ -130,62 +130,62 @@
 
   // ─── AddressCookies ────────────────────────────────────────────────
 
-  test('bc-results', 'set() a get() — string', function () {
+  test('bc-results', 'set() and get() — string', function () {
     AddressCookies.clear();
     AddressCookies.set('k', 'hello');
     assertEqual(AddressCookies.get('k'), 'hello');
   });
 
-  test('bc-results', 'set() a get() — číslo', function () {
+  test('bc-results', 'set() and get() — number', function () {
     AddressCookies.clear();
     AddressCookies.set('n', 99);
     assertEqual(AddressCookies.get('n'), 99);
   });
 
-  test('bc-results', 'set() a get() — boolean', function () {
+  test('bc-results', 'set() and get() — boolean', function () {
     AddressCookies.clear();
     AddressCookies.set('b', true);
     assertEqual(AddressCookies.get('b'), true);
   });
 
-  test('bc-results', 'set() a get() — objekt s polem', function () {
+  test('bc-results', 'set() and get() — object with array', function () {
     AddressCookies.clear();
     AddressCookies.set('obj', { a: 1, arr: [2, 3] });
     assertEqual(AddressCookies.get('obj'), { a: 1, arr: [2, 3] });
   });
 
-  test('bc-results', 'Unicode — česká diakritika', function () {
+  test('bc-results', 'Unicode support', function () {
     AddressCookies.clear();
     AddressCookies.set('txt', 'Příliš žluťoučký kůň');
     assertEqual(AddressCookies.get('txt'), 'Příliš žluťoučký kůň');
   });
 
-  test('bc-results', 'remove() odstraní klíč', function () {
+  test('bc-results', 'remove() deletes a key', function () {
     AddressCookies.clear();
     AddressCookies.set('x', 42);
     AddressCookies.remove('x');
     assertEqual(AddressCookies.get('x', null), null);
   });
 
-  test('bc-results', 'clear() vyprázdní vše', function () {
+  test('bc-results', 'clear() empties all data', function () {
     AddressCookies.set('a', 1);
     AddressCookies.set('b', 2);
     AddressCookies.clear();
     assertEqual(Object.keys(AddressCookies.all()).length, 0);
   });
 
-  test('bc-results', 'get() vrátí fallback pro chybějící klíč', function () {
+  test('bc-results', 'get() returns fallback for missing key', function () {
     AddressCookies.clear();
-    assertEqual(AddressCookies.get('missing', 'výchozí'), 'výchozí');
+    assertEqual(AddressCookies.get('missing', 'default'), 'default');
   });
 
-  test('bc-results', 'URL hash obsahuje __ac po set()', function () {
+  test('bc-results', 'URL hash contains __ac after set()', function () {
     AddressCookies.clear();
     AddressCookies.set('url-test', 123);
-    assert(location.hash.indexOf('__ac') !== -1, 'Hash neobsahuje __ac');
+    assert(location.hash.indexOf('__ac') !== -1, 'Hash does not contain __ac');
   });
 
-  test('bc-results', 'řetězení set().set().set()', function () {
+  test('bc-results', 'chained set().set().set()', function () {
     AddressCookies.clear();
     AddressCookies.set('x', 1).set('y', 2).set('z', 3);
     assertEqual(AddressCookies.get('x'), 1);
@@ -193,14 +193,14 @@
     assertEqual(AddressCookies.get('z'), 3);
   });
 
-  test('bc-results', 'přepsání existující hodnoty', function () {
+  test('bc-results', 'overwriting an existing value', function () {
     AddressCookies.clear();
-    AddressCookies.set('v', 'první');
-    AddressCookies.set('v', 'druhá');
-    assertEqual(AddressCookies.get('v'), 'druhá');
+    AddressCookies.set('v', 'first');
+    AddressCookies.set('v', 'second');
+    assertEqual(AddressCookies.get('v'), 'second');
   });
 
-  test('bc-results', 'null jako hodnota', function () {
+  test('bc-results', 'null as a value', function () {
     AddressCookies.clear();
     AddressCookies.set('n', null);
     assertEqual(AddressCookies.get('n'), null);
@@ -211,65 +211,65 @@
   test('as-results', 'getShareURL() + unpack() round-trip', function () {
     var data = { score: 5, name: 'Test' };
     var url  = AddressShare.getShareURL(data);
-    assert(typeof url === 'string' && url.length > 0, 'URL je prázdná');
+    assert(typeof url === 'string' && url.length > 0, 'URL is empty');
     assertEqual(AddressShare.unpack(url), data);
   });
 
-  test('as-results', 'unpack() vrátí null pro čistou URL', function () {
+  test('as-results', 'unpack() returns null for a plain URL', function () {
     assertEqual(AddressShare.unpack('https://example.com/'), null);
   });
 
-  test('as-results', 'Unicode v AddressShare', function () {
-    var data = { text: 'Žluťoučký kůň úpí' };
+  test('as-results', 'Unicode support', function () {
+    var data = { text: 'Žluťoučký kůň' };
     var url  = AddressShare.getShareURL(data);
     assertEqual(AddressShare.unpack(url).text, data.text);
   });
 
-  test('as-results', 'komplexní vnořená data', function () {
+  test('as-results', 'complex nested data', function () {
     var data = { answers: [1, 2, 3], flags: [true, false, true], meta: { score: '2/3' } };
     var url  = AddressShare.getShareURL(data);
     assertEqual(AddressShare.unpack(url), data);
   });
 
-  test('as-results', 'getShareURL() s vlastní baseURL', function () {
+  test('as-results', 'getShareURL() with custom baseURL', function () {
     var url = AddressShare.getShareURL({ x: 1 }, 'https://example.com/demo');
-    assert(url.indexOf('https://example.com/demo#') === 0, 'Špatná base URL');
+    assert(url.indexOf('https://example.com/demo#') === 0, 'Wrong base URL');
     assertEqual(AddressShare.unpack(url), { x: 1 });
   });
 
-  test('as-results', 'getShareURL() stripuje hash z baseURL', function () {
-    var url = AddressShare.getShareURL({ x: 1 }, 'https://example.com/demo#staryhash');
-    assert(url.indexOf('staryhash') === -1, 'Starý hash nebyl odstraněn');
+  test('as-results', 'getShareURL() strips existing hash from baseURL', function () {
+    var url = AddressShare.getShareURL({ x: 1 }, 'https://example.com/demo#oldhash');
+    assert(url.indexOf('oldhash') === -1, 'Old hash was not stripped');
     assertEqual(AddressShare.unpack(url), { x: 1 });
   });
 
-  test('as-results', '__ac a __as koexistují v hash', function () {
+  test('as-results', '__ac and __as coexist in the hash', function () {
     AddressCookies.clear();
     AddressCookies.set('coexist', 99);
     AddressShare.share({ shared: true });
-    assert(location.hash.indexOf('__ac') !== -1, 'Chybí __ac');
-    assert(location.hash.indexOf('__as') !== -1, 'Chybí __as');
+    assert(location.hash.indexOf('__ac') !== -1, 'Missing __ac in hash');
+    assert(location.hash.indexOf('__as') !== -1, 'Missing __as in hash');
     assertEqual(AddressShare.unpack().shared, true);
     assertEqual(AddressCookies.get('coexist'), 99);
   });
 
-  test('as-results', 'onReceive() nespustí callback bez dat', function () {
+  test('as-results', 'onReceive() does not fire without shared data', function () {
     var called = false;
     var tempHash = location.hash;
     history.replaceState(null, '', '#no-share-data');
     AddressShare.onReceive(function () { called = true; });
     history.replaceState(null, '', tempHash || '#');
-    assert(!called, 'Callback byl spuštěn bez __as dat');
+    assert(!called, 'Callback fired without __as data');
   });
 
-  // ─── Souhrn ────────────────────────────────────────────────────────
+  // ─── Summary ───────────────────────────────────────────────────────
 
   var summary = document.getElementById('summary');
   var total   = passed + failed;
   summary.className = 'summary ' + (failed === 0 ? 'all-pass' : 'has-fail');
   summary.textContent = failed === 0
-    ? '✓ Všechny testy prošly (' + total + '/' + total + ')'
-    : '✗ ' + failed + ' test' + (failed > 1 ? 'y' : '') + ' selhaly — ' + passed + '/' + total + ' prošlo';
+    ? '✓ All tests passed (' + total + '/' + total + ')'
+    : '✗ ' + failed + ' test' + (failed > 1 ? 's' : '') + ' failed — ' + passed + '/' + total + ' passed';
 </script>
 
 </body>

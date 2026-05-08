@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -122,32 +122,32 @@
 
 <header>
   <h1>Address Cookies</h1>
-  <p>Testovací demo — matematický kvíz + sdílení výsledků</p>
+  <p>Demo — math quiz + result sharing via URL</p>
 </header>
 
 <main>
 
   <div class="card" id="received-card" hidden>
-    <h2>Výsledky sdílené s tebou</h2>
+    <h2>Results shared with you</h2>
     <div id="received-body"></div>
   </div>
 
   <div class="card">
-    <h2>Matematický kvíz</h2>
-    <p class="hint">Tvoje odpovědi se průběžně ukládají do URL. Zkus stránku obnovit — odpovědi zůstanou.</p>
+    <h2>Math Quiz</h2>
+    <p class="hint">Your answers are saved to the URL as you type. Try refreshing the page — they will still be there.</p>
     <div id="questions"></div>
-    <button class="btn-primary" id="check-btn" style="margin-top:1.1rem">Zkontrolovat odpovědi</button>
+    <button class="btn-primary" id="check-btn" style="margin-top:1.1rem">Check answers</button>
   </div>
 
   <div class="card" id="results-card" hidden>
-    <h2>Výsledky</h2>
+    <h2>Results</h2>
     <div class="score" id="score-val"></div>
     <p class="sub" id="score-msg"></p>
-    <button class="btn-success" id="share-btn">Sdílet výsledky</button>
+    <button class="btn-success" id="share-btn">Share results</button>
     <div class="share-output" id="share-output" hidden>
-      <p>Zkopíruj a pošli tento odkaz:</p>
+      <p>Copy and send this link:</p>
       <input type="text" id="share-url" readonly>
-      <button class="btn-ghost" id="copy-btn">Kopírovat</button>
+      <button class="btn-ghost" id="copy-btn">Copy</button>
     </div>
   </div>
 
@@ -160,7 +160,11 @@
   <span class="sep">|</span>
   <a href="https://vbtronic.com">vbtronic.com</a>
   <br>
-  <span style="font-size:0.78rem; margin-top:0.3rem; display:inline-block">MIT 2026</span>
+  <span style="font-size:0.78rem; margin-top:0.4rem; display:inline-block">
+    <a href="https://github.com/vbtronic/address_cookies">GitHub</a>
+    <span class="sep">·</span>
+    <a href="https://github.com/vbtronic/address_cookies/blob/main/LICENSE">MIT 2026</a>
+  </span>
 </footer>
 
 <script src="../address-cookies.js"></script>
@@ -168,7 +172,7 @@
 <script>
   var QUESTIONS = [
     { q: '6 × 8',       a: 48  },
-    { q: '145 + 237',        a: 382 },
+    { q: '145 + 237',   a: 382 },
     { q: '480 ÷ 8',     a: 60  },
     { q: '23 × 15',     a: 345 },
     { q: '1000 − 463',  a: 537 }
@@ -176,12 +180,10 @@
 
   var lastResults = null;
 
-  // Přijatá sdílená data
   AddressShare.onReceive(function (data) {
     if (!data || !data.results) return;
     var card = document.getElementById('received-card');
     var body = document.getElementById('received-body');
-    var cls  = data.score === 5 ? 'good' : data.score >= 3 ? 'ok' : 'bad';
     var html = '<div class="received-score">' + data.score + ' / 5</div>';
     data.results.forEach(function (r, i) {
       html += '<div class="received-row">' + (i + 1) + '. ' + r.q + ' = ';
@@ -189,7 +191,7 @@
         html += '<span class="ok-mark">' + r.answer + ' ✓</span>';
       } else {
         html += '<span class="fail-mark">' + r.answer + ' ✗</span>';
-        html += ' <span class="correct-answer">(správně: ' + r.correct_answer + ')</span>';
+        html += ' <span class="correct-answer">(correct: ' + r.correct_answer + ')</span>';
       }
       html += '</div>';
     });
@@ -197,7 +199,6 @@
     card.hidden = false;
   });
 
-  // Vyrenderuj otázky
   var container = document.getElementById('questions');
   QUESTIONS.forEach(function (q, i) {
     var div = document.createElement('div');
@@ -209,42 +210,39 @@
     container.appendChild(div);
   });
 
-  // Auto-ukládání odpovědí
   AddressCookies.autoTrack();
 
-  // Zkontrolování odpovědí
   document.getElementById('check-btn').addEventListener('click', function () {
     var results = [];
     var score   = 0;
 
     QUESTIONS.forEach(function (q, i) {
-      var input  = document.getElementById('q' + (i + 1));
-      var note   = document.getElementById('note' + (i + 1));
-      var val    = input.value.trim();
-      var answer = val === '' ? null : parseInt(val, 10);
+      var input   = document.getElementById('q' + (i + 1));
+      var note    = document.getElementById('note' + (i + 1));
+      var val     = input.value.trim();
+      var answer  = val === '' ? null : parseInt(val, 10);
       var correct = answer === q.a;
       if (correct) score++;
 
       input.classList.remove('correct', 'wrong');
       input.classList.add(correct ? 'correct' : 'wrong');
-      note.textContent = correct ? '' : '✗ správně: ' + q.a;
+      note.textContent = correct ? '' : '✗ correct: ' + q.a;
 
       results.push({ q: q.q, answer: answer === null ? '—' : answer, correct: correct, correct_answer: q.a });
     });
 
     lastResults = { score: score, results: results };
 
-    document.getElementById('score-val').className  = 'score ' + (score === 5 ? 'good' : score >= 3 ? 'ok' : 'bad');
-    document.getElementById('score-val').textContent = score + ' / 5';
-    document.getElementById('score-msg').textContent =
-      score === 5 ? 'Perfektní! Všechno správně.' :
-      score >= 3  ? 'Dobrá práce!' : 'Zkus to znovu.';
+    document.getElementById('score-val').className   = 'score ' + (score === 5 ? 'good' : score >= 3 ? 'ok' : 'bad');
+    document.getElementById('score-val').textContent  = score + ' / 5';
+    document.getElementById('score-msg').textContent  =
+      score === 5 ? 'Perfect! All correct.' :
+      score >= 3  ? 'Good job!' : 'Try again.';
 
     document.getElementById('results-card').hidden = false;
     document.getElementById('share-output').hidden = true;
   });
 
-  // Sdílení
   document.getElementById('share-btn').addEventListener('click', function () {
     if (!lastResults) return;
     var url = AddressShare.getShareURL(lastResults);
@@ -256,8 +254,8 @@
     if (!lastResults) return;
     var btn = this;
     AddressShare.copyToClipboard(lastResults).then(function () {
-      btn.textContent = 'Zkopírovanó!';
-      setTimeout(function () { btn.textContent = 'Kopírovat'; }, 2000);
+      btn.textContent = 'Copied!';
+      setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
     });
   });
 </script>
