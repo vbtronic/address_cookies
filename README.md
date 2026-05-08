@@ -136,6 +136,14 @@ You can also open the files directly via `file://` — most browsers support thi
 
 ---
 
+## Consulting & webinars
+
+Need help integrating Address Cookies, building cookie-free static sites, or want a deep-dive webinar?
+
+[opensource.bruncsoft.com](https://opensource.bruncsoft.com)
+
+---
+
 ## License
 
 MIT License — © 2026 Viktor Brunclík
