@@ -91,6 +91,8 @@ const data = AddressCookies.unpack('https://example.com/#as.score=5');
 
 ## Demo & tests
 
+- **Practical demo:** [github.com/vbtronic/adresss_cookies_practic_demo](https://github.com/vbtronic/adresss_cookies_practic_demo)
+
 ### Run locally
 
 ```bash
@@ -119,7 +121,7 @@ You can also open the files directly via `file://` — most browsers support thi
 
 Need help integrating Address Cookies, building cookie-free static sites, or want a deep-dive webinar? You can also support the project directly.
 
-[opensource.bruncsoft.com](https://opensource.bruncsoft.com)
+**Project page:** [bruncsoft.com/address-cookies](https://bruncsoft.com/address-cookies)
 
 ---
 
