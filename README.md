@@ -91,7 +91,7 @@ const data = AddressCookies.unpack('https://example.com/#as.score=5');
 
 ## Demo & tests
 
-- **Practical demo:** [github.com/vbtronic/adresss_cookies_practic_demo](https://github.com/vbtronic/adresss_cookies_practic_demo)
+- **Practical demo:** [github.com/vbtronic/address_cookies_practical_demo](https://github.com/vbtronic/address_cookies_practical_demo)
 
 ### Run locally
 
